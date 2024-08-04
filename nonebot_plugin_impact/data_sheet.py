@@ -39,6 +39,8 @@ class UserData(Base):
     userid = Column(Integer, primary_key=True, index=True)
     jj_length = Column(Float, nullable=False)
     last_masturbation_time = Column(Integer, nullable=False, default=0)
+    lock = Column(Boolean, nullable=False)  # jj锁
+    lock_time = Column(String(20), nullable=False)  # 锁上时间
 
 
 class GroupData(Base):
@@ -75,7 +77,7 @@ def add_new_user(userid: int) -> None:
     with session() as s:
         s.add(
             UserData(
-                userid=userid, jj_length=10.0, last_masturbation_time=int(time.time())
+                userid=userid, jj_length=10.0, last_masturbation_time=int(time.time()), lock=False
             )
         )
         s.commit()
@@ -227,3 +229,20 @@ def get_sorted() -> List[Dict]:
             {"userid": i.userid, "jj_length": i.jj_length}
             for i in s.query(UserData).order_by(UserData.jj_length.desc())
         ]
+
+def set_jjlock(userid: int, lock: bool) -> None:
+    """更新指定用户的锁定状态"""
+    with session() as s:
+        # 更新锁定状态
+        s.query(UserData).filter(UserData.userid == userid).update(
+            {
+                UserData.lock: lock,
+                UserData.lock_time: time.strftime('%Y-%m-%d %H:%M:%S') if lock else None
+            }
+        )
+        s.commit()
+
+def get_jjlock(userid: int) -> bool:
+    """返回指定用户的锁定状态"""
+    with session() as s:
+        return s.query(UserData).filter(UserData.userid == userid).first().lock

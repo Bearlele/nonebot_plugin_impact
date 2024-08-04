@@ -2,6 +2,7 @@
 import asyncio
 import random
 import time
+import math
 from random import choice
 from typing import Dict, List, Tuple
 
@@ -24,6 +25,8 @@ from .data_sheet import (
     set_group_allow,
     set_jj_length,
     update_activity,
+    set_jjlock,
+    get_jjlock,
 )
 from .draw_img import draw_bar_chart
 from .utils import utils
@@ -57,25 +60,71 @@ class Impart:
         if at == uid:  # 如果at的id和uid相同, 则返回
             await matcher.finish("你不能pk自己喵", at_sender=True)
         # rule规定了必须有at, 所以不用判断at是否为寄
-        if is_in_table(userid=int(uid)) and is_in_table(
-            int(at)
-        ):  # 如果两个都在userdata里面
-            random_num = random.random()  # 生成一个随机数
-            # 如果random_num大于0.5, 则胜利, 否则失败
-            if random_num > 0.5:
-                random_num: float = utils.get_random_num()  # 重新生成一个随机数
-                set_jj_length(int(uid), random_num / 2)
-                set_jj_length(int(at), -random_num)
+        if is_in_table(userid=int(uid)) and is_in_table(int(at)):  # 如果两个都在userdata里面
+            if get_jjlock(at):
                 await matcher.finish(
-                    f"对决胜利喵, 你的{choice(utils.jj_variable)}增加了{round(random_num/2,3)}cm喵, 对面则在你的阴影笼罩下减小了{random_num}cm喵",
+                    f"对方的{choice(utils.jj_variable)}被锁上了，无法发起攻击喵",
+                    at_sender=True,
+                )
+            
+            # ============= 战斗 ==============
+            values = [get_jj_length(int(uid)), get_jj_length(int(at))]
+            values.sort()
+            # 确保随机数的范围为正数
+            min_value = max(int(values[0]), 1)  # 转换为整数，并确保不小于 1
+            max_value = min(int(values[1] * 10), 100) # 乘以 10 并确保不超过 100
+            divisor = random.randint(min_value, max_value)
+            P = 1 / (1 + math.exp(-(get_jj_length(int(uid)) - get_jj_length(int(at))) / divisor))
+            random_num = round(random.random())  # 生成一个随机数
+
+            # ============= 随机事件 ==============
+            # 将最小值映射到0到1的范围内
+            min_range = -50
+            max_range = 0
+            trigger_probability = max(0, min(1, (max_range - values[0]) / (max_range - min_range)))
+            if (get_jj_length(int(uid)) <= 0 or get_jj_length(int(at)) <= 0):
+                if (random.random() < trigger_probability):
+                    print("[淫趴] 触发随机事件——— 雌堕")
+                    P = P * random.randint(5, 20)
+                    if uid <= at:
+                        set_jj_length(int(at), -P)
+                        await matcher.finish(
+                            f"你触发了‘雌堕’效果，对方{choice(utils.jj_variable)}在你的攻击下无法逃脱，受到高额伤害，减小了{round(P,3)}cm喵",
+                            at_sender=True,
+                        )
+                    else:
+                        set_jj_length(int(uid), -P)
+                        await matcher.finish(
+                            f"你尝试攻击对方的{choice(utils.jj_variable)}，很不幸对方触发了‘雌堕’效果，你的{choice(utils.jj_variable)}受到高额伤害，减小了{round(P,3)}cm喵",
+                            at_sender=True,
+                        )
+                # else:
+                #     if get_jj_length(int(uid)) <= 0:
+                #         await matcher.finish(
+                #             f"你的{choice(utils.jj_variable)}目前长度为{get_jj_length(int(uid))}cm，无法参与对战喵",
+                #             at_sender=True,
+                #         )
+                #     elif get_jj_length(int(at)) <= 0:
+                #         await matcher.finish(
+                #             f"对方的{choice(utils.jj_variable)}目前长度为{get_jj_length(int(at))}cm，无法参与对战喵",
+                #             at_sender=True,
+                #         )
+            
+            # ============= 正常战斗 ==============
+            if random_num <= P:
+                # random_num: float = utils.get_random_num()  # 重新生成一个随机数
+                set_jj_length(int(uid), P / 2)
+                set_jj_length(int(at), -P)
+                await matcher.finish(
+                    f"对决胜利喵, 你的{choice(utils.jj_variable)}增加了{round(P/2,3)}cm喵, 对面则在你的阴影笼罩下减小了{round(P,3)}cm喵",
                     at_sender=True,
                 )
             else:
-                random_num: float = utils.get_random_num()  # 重新生成一个随机数
-                set_jj_length(int(uid), -random_num)
-                set_jj_length(int(at), random_num / 2)
+                # random_num: float = utils.get_random_num()  # 重新生成一个随机数
+                set_jj_length(int(uid), -P)
+                set_jj_length(int(at), P / 2)
                 await matcher.finish(
-                    f"对决失败喵, 在对面牛子的阴影笼罩下你的{choice(utils.jj_variable)}减小了{random_num}cm喵, 对面增加了{round(random_num/2,3)}cm喵",
+                    f"对决失败喵, 在对面牛子的阴影笼罩下你的{choice(utils.jj_variable)}减小了{round(P,3)}cm喵, 对面增加了{round(P/2,3)}cm喵",
                     at_sender=True,
                 )
         else:
@@ -361,7 +410,7 @@ class Impart:
         repo_1 = f"好欸！{req_user_card}({uid})用时{random.randint(1, 20)}秒 \n给 {lucky_user_card}({lucky_user}) 注入了{ejaculation}毫升的脱氧核糖核酸, 当日总注入量为：{get_today_ejaculation_data(int(lucky_user))}毫升\n"
         await matcher.send(
             repo_1
-            + MessageSegment.image(f"https://q1.qlogo.cn/g?b=qq&nk={lucky_user}&s=640")
+            # + MessageSegment.image(f"https://q1.qlogo.cn/g?b=qq&nk={lucky_user}&s=640")
         )  # 结束
 
     @staticmethod
@@ -422,6 +471,44 @@ class Impart:
     async def yinpa_introduce(matcher: Matcher) -> None:
         """输出用法"""
         await matcher.send(MessageSegment.image(await utils.plugin_usage()))
+
+    @staticmethod
+    async def jjlock(matcher: Matcher, event: GroupMessageEvent) -> None:
+        """贞操锁上锁响应器"""
+        if not check_group_allow(event.group_id):
+            await matcher.finish(utils.not_allow, at_sender=True)
+        uid: str = event.get_user_id()
+        if is_in_table(userid=int(uid)):  # 如果在userdata里面
+            set_jjlock(uid, True)
+            await matcher.finish(
+                    f"你的{choice(utils.jj_variable)}已经成功锁上了喵，除自己以外的人都无法主动触碰你的{choice(utils.jj_variable)}，想要解锁可以发送‘jj解锁’喵",
+                    at_sender=True,
+                )
+        else:
+            add_new_user(int(uid))  # 创建用户
+            await matcher.finish(
+                f"你还没有创建{choice(utils.jj_variable)}, 咱帮你创建了喵, 目前长度是10cm喵",
+                at_sender=True,
+            )
+
+    @staticmethod
+    async def jjunlock(matcher: Matcher, event: GroupMessageEvent) -> None:
+        """贞操锁解锁响应器"""
+        if not check_group_allow(event.group_id):
+            await matcher.finish(utils.not_allow, at_sender=True)
+        uid: str = event.get_user_id()
+        if is_in_table(userid=int(uid)):  # 如果在userdata里面
+            set_jjlock(uid, False)
+            await matcher.finish(
+                    f"你的{choice(utils.jj_variable)}已经成功解锁了喵",
+                    at_sender=True,
+                )
+        else:
+            add_new_user(int(uid))  # 创建用户
+            await matcher.finish(
+                f"你还没有创建{choice(utils.jj_variable)}, 咱帮你创建了喵, 目前长度是10cm喵",
+                at_sender=True,
+            )
 
 
 impart = Impart()

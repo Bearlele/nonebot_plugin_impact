@@ -15,7 +15,7 @@ class Utils:
         self.usage = """指令1: 嗦牛子 (给目标牛牛增加长度, 自己或者他人, 通过艾特选择对象, 没有at时目标是自己)
 指令2: 打胶 | 开导 (给自己牛牛增加长度)
 指令3: pk | 对决 (普通的pk,单纯的random实现输赢, 胜利方获取败方随机数/2的牛牛长度)
-指令4: 查询 (目标牛牛长度, 自己或者他人, 通过艾特选择对象, 没有at时目标是自己)
+指令4: kkjb | kkjj (目标牛牛长度, 自己或者他人, 通过艾特选择对象, 没有at时目标是自己)
 指令5: jj排行榜 | jj排名 | jj榜单 | jjrank (字面意思, 输出倒数五位和前五位, 以及自己的排名)
 指令6: 开始银趴 | 关闭银趴 | 开启淫趴 | 禁止淫趴 | 开启银趴 | 禁止银趴 (由管理员 | 群主 | SUPERUSERS开启或者关闭淫趴)
 指令7: 日群友 | 透群友 | 日群主 | 透群主 | 日管理 | 透管理  (字面意思, 当使用透群友的时候如果at了人那么直接指定)
@@ -29,9 +29,9 @@ class Utils:
         self.ejaculation_cd = {}  # 射精CD
         config = nonebot.get_driver().config  # 获取配置
         self.dj_cd_time: int = getattr(config, "djcdtime", 300)  # 打胶冷却时间
-        self.pk_cd_time: int = getattr(config, "pkcdtime", 60)  # pk冷却时间
+        self.pk_cd_time: int = getattr(config, "pkcdtime", 45)  # pk冷却时间
         self.suo_cd_time: int = getattr(config, "suocdtime", 300)  # 嗦牛子冷却时间
-        self.fuck_cd_time: int = getattr(config, "fuckcdtime", 3600)  # 透群友冷却时间
+        self.fuck_cd_time: int = getattr(config, "fuckcdtime", 600)  # 透群友冷却时间
 
     @staticmethod
     async def rule(event: GroupMessageEvent) -> bool:

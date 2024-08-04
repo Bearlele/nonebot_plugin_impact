@@ -32,6 +32,22 @@ on_regex(
 )
 
 on_command(
+    "jj上锁",
+    aliases={"jb上锁", "jjlock", "jblock"}, 
+    priority=20, 
+    block=False, 
+    handlers=[impart.jjlock]
+)
+
+on_command(
+    "jj解锁",
+    aliases={"jb解锁", "jjunlock", "jbunlock"}, 
+    priority=20, 
+    block=False, 
+    handlers=[impart.jjunlock]
+)
+
+on_command(
     "嗦牛子", 
     priority=20, 
     block=True, 
@@ -39,7 +55,8 @@ on_command(
 )
 
 on_command(
-    "查询", 
+    "kkjb",
+    aliases={"kkjj", "查询jb", "查询jj"}, 
     priority=20, 
     block=False, 
     handlers=[impart.queryjj]
