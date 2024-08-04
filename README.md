@@ -7,6 +7,9 @@
 ### 警告！！！  在群内大量使用本插件可能被网警封群！！！请慎用！！！
 ### 使用插件是你自己的事情, 产生的一切后果本人概不负责
 
+##分支新增
+1.修改pk算法，大牛子对战更胜一筹，0cm以下pk有几率触发'雌堕'效果。
+2.新增贞操锁玩法。
 
 响应器如下
 
@@ -18,6 +21,8 @@ on_command("查询", priority=20, block=False, handlers=[impart.queryjj])
 on_command("jj排行榜", aliases={"jj排名", "jj榜单", "jjrank"}, priority=20, block=True, handlers=[impart.jjrank])
 on_regex(r"^(日群友|透群友|日群主|透群主|日管理|透管理)", flags=I, priority=20, block=True, handlers=[impart.yinpa])
 on_regex(r"^(开始银趴|关闭银趴|开启淫趴|禁止淫趴|开启银趴|禁止银趴)", permission=SUPERUSER | GROUP_ADMIN | GROUP_OWNER, flags=I, priority=20, block=True, handlers=[impart.open_module])
+on_command("jj上锁", aliases={"jb上锁", "jjlock", "jblock"}, priority=20, block=False, handlers=[impart.jjlock])
+on_command("jj解锁", aliases={"jb解锁", "jjunlock", "jbunlock"}, priority=20, block=False, handlers=[impart.jjunlock])
 on_command("注入查询", aliases={"摄入查询", "射入查询"}, priority=20, block=True, handlers=[impart.query_injection])
 on_command("淫趴介绍", priority=20, block=True)
 ```
