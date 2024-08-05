@@ -3,6 +3,7 @@ import os
 import random
 import time
 from typing import Dict, List
+from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
@@ -241,8 +242,42 @@ def set_jjlock(userid: int, lock: bool) -> None:
             }
         )
         s.commit()
-
-def get_jjlock(userid: int) -> bool:
-    """返回指定用户的锁定状态"""
+    
+def get_jjlock(userid: int):
+    """返回指定用户的锁定状态和锁定时间"""
     with session() as s:
-        return s.query(UserData).filter(UserData.userid == userid).first().lock
+        user = s.query(UserData).filter(UserData.userid == userid).first()
+        if user:
+            lock_status = user.lock
+            lock_time = user.lock_time
+            return lock_status, lock_time
+        return None, None
+    
+def calculate_difference_and_penalty(lock_time):
+        # 获取当前时间并转换为datetime对象
+        current_time = datetime.now()
+        
+        # 计算时间差
+        time_diff = current_time - lock_time
+        hours_diff = time_diff.total_seconds() / 3600
+        
+        # 提取时间差的总秒数
+        total_seconds = int(time_diff.total_seconds())
+        
+        # 计算天数、小时、分钟和秒
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        seconds = total_seconds % 60
+        
+        # 根据时间差的大小选择不同的格式进行显示
+        if days > 0:
+            readable_diff = f'{days}天{hours}小时{minutes}分钟{seconds}秒'
+        elif hours > 0:
+            readable_diff = f'{hours}小时{minutes}分钟{seconds}秒'
+        elif minutes > 0:
+            readable_diff = f'{minutes}分钟{seconds}秒'
+        else:
+            readable_diff = f'{seconds}秒'
+        
+        return readable_diff, hours_diff

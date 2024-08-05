@@ -33,7 +33,7 @@ on_regex(
 
 on_command(
     "jj上锁",
-    aliases={"jb上锁", "jjlock", "jblock"}, 
+    aliases={"jb上锁", "jjlock", "jblock", "锁牛牛", "锁牛子"}, 
     priority=20, 
     block=False, 
     handlers=[impart.jjlock]
@@ -41,7 +41,7 @@ on_command(
 
 on_command(
     "jj解锁",
-    aliases={"jb解锁", "jjunlock", "jbunlock"}, 
+    aliases={"jb解锁", "jjunlock", "jbunlock", "解锁牛牛", "解锁牛子"}, 
     priority=20, 
     block=False, 
     handlers=[impart.jjunlock]

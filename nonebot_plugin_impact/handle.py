@@ -27,9 +27,11 @@ from .data_sheet import (
     update_activity,
     set_jjlock,
     get_jjlock,
+    calculate_difference_and_penalty,
 )
 from .draw_img import draw_bar_chart
 from .utils import utils
+from datetime import datetime
 
 
 class Impart:
@@ -49,25 +51,28 @@ class Impart:
         if not check_group_allow(event.group_id):
             await matcher.finish(utils.not_allow, at_sender=True)
         uid: str = event.get_user_id()
-        allow: bool = await utils.pkcd_check(uid)  # CD是否允许pk
-        if not allow:  # 如果不允许pk, 则返回
-            await matcher.finish(
-                f"你已经pk不动了喵, 请等待{round(utils.pk_cd_time-(time.time() - utils.pk_cd_data[uid]),3)}秒后再pk喵",
-                at_sender=True,
-            )
-        utils.pk_cd_data.update({uid: time.time()})  # 更新CD时间
         at = await utils.get_at(event)  # 获取at的id, 类型为str
-        if at == uid:  # 如果at的id和uid相同, 则返回
-            await matcher.finish("你不能pk自己喵", at_sender=True)
         # rule规定了必须有at, 所以不用判断at是否为寄
         if is_in_table(userid=int(uid)) and is_in_table(int(at)):  # 如果两个都在userdata里面
-            if get_jjlock(at):
+            if at == uid:  # 如果at的id和uid相同, 则返回
+                await matcher.finish("你不能pk自己喵", at_sender=True)
+
+            allow: bool = await utils.pkcd_check(uid)  # CD是否允许pk
+            if not allow:  # 如果不允许pk, 则返回
+                await matcher.finish(
+                    f"你已经pk不动了喵, 请等待{round(utils.pk_cd_time-(time.time() - utils.pk_cd_data[uid]),3)}秒后再pk喵",
+                    at_sender=True,
+                )
+
+            jjlock_info = get_jjlock(at)
+            if jjlock_info[0]:
                 await matcher.finish(
                     f"对方的{choice(utils.jj_variable)}被锁上了，无法发起攻击喵",
                     at_sender=True,
                 )
             
             # ============= 战斗 ==============
+            utils.pk_cd_data.update({uid: time.time()})  # 更新CD时间
             values = [get_jj_length(int(uid)), get_jj_length(int(at))]
             values.sort()
             # 确保随机数的范围为正数
@@ -479,11 +484,19 @@ class Impart:
             await matcher.finish(utils.not_allow, at_sender=True)
         uid: str = event.get_user_id()
         if is_in_table(userid=int(uid)):  # 如果在userdata里面
-            set_jjlock(uid, True)
-            await matcher.finish(
-                    f"你的{choice(utils.jj_variable)}已经成功锁上了喵，除自己以外的人都无法主动触碰你的{choice(utils.jj_variable)}，想要解锁可以发送‘jj解锁’喵",
+            jjlock_info = get_jjlock(uid)
+            if jjlock_info[0]:
+                readable_diff, hours_diff = calculate_difference_and_penalty(datetime.strptime(jjlock_info[1], '%Y-%m-%d %H:%M:%S'))
+                await matcher.finish(
+                    f"你的{choice(utils.jj_variable)}已经是锁定状态了喵，锁定时长{readable_diff}，想要解锁可以发送‘jj解锁’喵",
                     at_sender=True,
                 )
+            else: 
+                set_jjlock(uid, True)
+                await matcher.finish(
+                        f"你的{choice(utils.jj_variable)}已经成功锁上了喵，锁太久会对{choice(utils.jj_variable)}造成不可逆的损伤，想要解锁可以发送‘jj解锁’喵",
+                        at_sender=True,
+                    )
         else:
             add_new_user(int(uid))  # 创建用户
             await matcher.finish(
@@ -498,17 +511,39 @@ class Impart:
             await matcher.finish(utils.not_allow, at_sender=True)
         uid: str = event.get_user_id()
         if is_in_table(userid=int(uid)):  # 如果在userdata里面
-            set_jjlock(uid, False)
-            await matcher.finish(
-                    f"你的{choice(utils.jj_variable)}已经成功解锁了喵",
-                    at_sender=True,
-                )
+            jjlock_info = get_jjlock(uid)
+            if jjlock_info[0]:
+                """计算从锁定时间到现在的惩罚值"""
+                readable_diff, hours_diff = calculate_difference_and_penalty(datetime.strptime(jjlock_info[1], '%Y-%m-%d %H:%M:%S'))
+                print (f"[银趴] {readable_diff} {hours_diff}")
+                if hours_diff > 1:
+                    minutes_over = (hours_diff - 1) * 60
+                    penalty = min(minutes_over * random.uniform(0.005, 0.008), get_jj_length(uid) - 2) # 惩罚后最短不小于2cm
+                    set_jj_length(int(uid), -penalty)
+                    set_jjlock(uid, False)
+                    await matcher.finish(
+                        f"你的{choice(utils.jj_variable)}已经成功解锁了喵，锁定时长{readable_diff}已对{choice(utils.jj_variable)}造成了不可逆的伤害，减小了{round(penalty,3)}cm喵",
+                        at_sender=True,
+                    ) 
+
+                set_jjlock(uid, False)
+                await matcher.finish(
+                        f"你的{choice(utils.jj_variable)}已经成功解锁了喵，锁定时长{readable_diff}",
+                        at_sender=True,
+                    )
+            else:
+                await matcher.finish(
+                        f"你的{choice(utils.jj_variable)}没有被锁上不需要解锁喵",
+                        at_sender=True,
+                    )
         else:
             add_new_user(int(uid))  # 创建用户
             await matcher.finish(
                 f"你还没有创建{choice(utils.jj_variable)}, 咱帮你创建了喵, 目前长度是10cm喵",
                 at_sender=True,
             )
+
+    
 
 
 impart = Impart()
