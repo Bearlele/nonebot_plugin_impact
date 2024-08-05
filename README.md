@@ -21,8 +21,8 @@ on_command("查询", priority=20, block=False, handlers=[impart.queryjj])
 on_command("jj排行榜", aliases={"jj排名", "jj榜单", "jjrank"}, priority=20, block=True, handlers=[impart.jjrank])
 on_regex(r"^(日群友|透群友|日群主|透群主|日管理|透管理)", flags=I, priority=20, block=True, handlers=[impart.yinpa])
 on_regex(r"^(开始银趴|关闭银趴|开启淫趴|禁止淫趴|开启银趴|禁止银趴)", permission=SUPERUSER | GROUP_ADMIN | GROUP_OWNER, flags=I, priority=20, block=True, handlers=[impart.open_module])
-on_command("jj上锁", aliases={"jb上锁", "jjlock", "jblock"}, priority=20, block=False, handlers=[impart.jjlock])
-on_command("jj解锁", aliases={"jb解锁", "jjunlock", "jbunlock"}, priority=20, block=False, handlers=[impart.jjunlock])
+on_command("jj上锁", aliases={"jb上锁", "锁定牛牛", "锁定牛子", "锁牛牛", "锁牛子"}, priority=20, block=False, handlers=[impart.jjlock])
+on_command("jj解锁", aliases={"jb解锁", "解开牛牛", "解开牛子", "解锁牛牛", "解锁牛子"}, priority=20, block=False, handlers=[impart.jjunlock])
 on_command("注入查询", aliases={"摄入查询", "射入查询"}, priority=20, block=True, handlers=[impart.query_injection])
 on_command("淫趴介绍", priority=20, block=True)
 ```
@@ -63,6 +63,8 @@ on_command("淫趴介绍", priority=20, block=True)
 指令8: 注入查询 | 摄入查询 | 射入查询 (查询目标被透注入的量，后接(历史|全部), 可查看总被摄入的量, 无艾特的时候是自己, 有at的时候是目标)
 
 指令9: 淫趴介绍  (输出淫趴插件的命令列表)
+
+指令10: 锁定牛牛 (锁定牛牛防止被别人攻击，但时间过长有可能会造成损伤) | 解锁牛牛 (解锁自己的牛牛) 
 
 ### env配置项:
 | config       | type | default | example              | usage      |
