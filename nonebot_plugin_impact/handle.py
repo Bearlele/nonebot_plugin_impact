@@ -93,7 +93,7 @@ class Impart:
                 divisor = random.randint(min_value, max_value)
 
             P = 1 / (1 + math.exp(-(get_jj_length(int(uid)) - get_jj_length(int(at))) / divisor))
-            random_num = round(random.random())  # 生成一个随机数
+            random_num = round(random.random())
 
             # ============= 随机事件 ==============
             # 将最小值映射到0到1的范围内
