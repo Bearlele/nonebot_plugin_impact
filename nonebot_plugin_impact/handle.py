@@ -75,10 +75,23 @@ class Impart:
             utils.pk_cd_data.update({uid: time.time()})  # 更新CD时间
             values = [get_jj_length(int(uid)), get_jj_length(int(at))]
             values.sort()
-            # 确保随机数的范围为正数
-            min_value = max(int(values[0]), 1)  # 转换为整数，并确保不小于 1
-            max_value = min(int(values[1] * 10), 100) # 乘以 10 并确保不超过 100
+            # 确保 min_value 和 max_value 是正数并且在合理范围内
+            min_value = max(1, abs(int(values[0])))  # 确保不小于 1
+            max_value = min(100, abs(int(values[1] * 10)))  # 确保不超过 100
+
+            # 确保 min_value 小于或等于 max_value
+            if min_value > max_value:
+                min_value, max_value = max_value, min_value
+
+            # 如果 min_value 和 max_value 仍然无效，设置默认值
+            if min_value == 0 or max_value == 0 or min_value > max_value:
+                min_value, max_value = 1, 100
+
+            # 确保 divisor 不为 0
             divisor = random.randint(min_value, max_value)
+            while divisor == 0:
+                divisor = random.randint(min_value, max_value)
+
             P = 1 / (1 + math.exp(-(get_jj_length(int(uid)) - get_jj_length(int(at))) / divisor))
             random_num = round(random.random())  # 生成一个随机数
 
@@ -90,7 +103,7 @@ class Impart:
             if (get_jj_length(int(uid)) <= 0 or get_jj_length(int(at)) <= 0):
                 if (random.random() < trigger_probability):
                     print("[淫趴] 触发随机事件——— 雌堕")
-                    P = P * random.randint(5, 20)
+                    P = P * random.randint(7, 20)
                     if uid <= at:
                         set_jj_length(int(at), -P)
                         await matcher.finish(
@@ -473,7 +486,9 @@ class Impart:
             await matcher.finish(utils.not_allow, at_sender=True)
         uid: str = event.get_user_id()
         if is_in_table(userid=int(uid)):  # 如果在userdata里面
-            if get_jj_length(int(uid)) > 2:
+            jj_length = get_jj_length(int(uid))
+            print (f"[银趴DEBUG] {jj_length}")
+            if jj_length > 2:
                 jjlock_info = get_jjlock(uid)
                 if jjlock_info[0]:
                     readable_diff, hours_diff = calculate_difference_and_penalty(datetime.strptime(jjlock_info[1], '%Y-%m-%d %H:%M:%S'))
@@ -489,7 +504,7 @@ class Impart:
                         )
             else:
                 await matcher.finish(
-                    f"你的{choice(utils.jj_variable)}只剩{get_jj_length(int(uid))}cm，锁不上喵",
+                    f"你的{choice(utils.jj_variable)}只剩{round(jj_length, 3)}cm，锁不上喵",
                     at_sender=True,
                 )
         else:
