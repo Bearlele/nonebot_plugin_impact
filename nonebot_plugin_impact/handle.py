@@ -103,17 +103,6 @@ class Impart:
                             f"你尝试攻击对方的{choice(utils.jj_variable)}，很不幸对方触发了‘雌堕’效果，你的{choice(utils.jj_variable)}受到高额伤害，减小了{round(P,3)}cm喵",
                             at_sender=True,
                         )
-                # else:
-                #     if get_jj_length(int(uid)) <= 0:
-                #         await matcher.finish(
-                #             f"你的{choice(utils.jj_variable)}目前长度为{get_jj_length(int(uid))}cm，无法参与对战喵",
-                #             at_sender=True,
-                #         )
-                #     elif get_jj_length(int(at)) <= 0:
-                #         await matcher.finish(
-                #             f"对方的{choice(utils.jj_variable)}目前长度为{get_jj_length(int(at))}cm，无法参与对战喵",
-                #             at_sender=True,
-                #         )
             
             # ============= 正常战斗 ==============
             if random_num <= P:
@@ -484,19 +473,25 @@ class Impart:
             await matcher.finish(utils.not_allow, at_sender=True)
         uid: str = event.get_user_id()
         if is_in_table(userid=int(uid)):  # 如果在userdata里面
-            jjlock_info = get_jjlock(uid)
-            if jjlock_info[0]:
-                readable_diff, hours_diff = calculate_difference_and_penalty(datetime.strptime(jjlock_info[1], '%Y-%m-%d %H:%M:%S'))
-                await matcher.finish(
-                    f"你的{choice(utils.jj_variable)}已经是锁定状态了喵，锁定时长{readable_diff}，想要解锁可以发送‘jj解锁’喵",
-                    at_sender=True,
-                )
-            else: 
-                set_jjlock(uid, True)
-                await matcher.finish(
-                        f"你的{choice(utils.jj_variable)}已经成功锁上了喵，锁太久会对{choice(utils.jj_variable)}造成不可逆的损伤，想要解锁可以发送‘jj解锁’喵",
+            if get_jj_length(int(uid)) > 2:
+                jjlock_info = get_jjlock(uid)
+                if jjlock_info[0]:
+                    readable_diff, hours_diff = calculate_difference_and_penalty(datetime.strptime(jjlock_info[1], '%Y-%m-%d %H:%M:%S'))
+                    await matcher.finish(
+                        f"你的{choice(utils.jj_variable)}已经是锁定状态了喵，锁定时长{readable_diff}，想要解锁可以发送‘jj解锁’喵",
                         at_sender=True,
                     )
+                else: 
+                    set_jjlock(uid, True)
+                    await matcher.finish(
+                            f"你的{choice(utils.jj_variable)}已经成功锁上了喵，锁太久会对{choice(utils.jj_variable)}造成不可逆的损伤，想要解锁可以发送‘jj解锁’喵",
+                            at_sender=True,
+                        )
+            else:
+                await matcher.finish(
+                    f"你的{choice(utils.jj_variable)}只剩{get_jj_length(int(uid))}cm，锁不上喵",
+                    at_sender=True,
+                )
         else:
             add_new_user(int(uid))  # 创建用户
             await matcher.finish(

@@ -254,14 +254,11 @@ def get_jjlock(userid: int):
         return None, None
     
 def calculate_difference_and_penalty(lock_time):
-        # 获取当前时间并转换为datetime对象
         current_time = datetime.now()
         
         # 计算时间差
         time_diff = current_time - lock_time
         hours_diff = time_diff.total_seconds() / 3600
-        
-        # 提取时间差的总秒数
         total_seconds = int(time_diff.total_seconds())
         
         # 计算天数、小时、分钟和秒
